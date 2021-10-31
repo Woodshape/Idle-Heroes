@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4069a85487003a4f9f1874cdb5728f7, type: 3}
+  m_Name: ForestBiomeTileAtlas
+  m_EditorClassIdentifier: 
+  stone: {fileID: 11400000, guid: 8c7d457ff0f7ab24e945e7f35873cdc2, type: 2}
+  bedrock: {fileID: 11400000, guid: a62764bdd2b3c484a9230f5bd4603930, type: 2}
+  dirt: {fileID: 11400000, guid: 202e194fbefe07546b571665e101fce4, type: 2}
+  grass: {fileID: 11400000, guid: a92194022e06d0140b8e59cf805df661, type: 2}
+  log: {fileID: 11400000, guid: af2e4dec07bb863489d6af2cbd8f8982, type: 2}
+  leaf: {fileID: 11400000, guid: 41756997bc1a1434e9d2966a40f0f5a2, type: 2}
+  longGrass: {fileID: 11400000, guid: fab653ec60f228843b40903371080483, type: 2}

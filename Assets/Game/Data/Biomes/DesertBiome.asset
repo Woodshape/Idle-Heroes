@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dae1bdb9c8fd0c40a35b40e636efab3, type: 3}
+  m_Name: DesertBiome
+  m_EditorClassIdentifier: 
+  Color: {r: 1, g: 0.9764706, b: 0, a: 1}
+  tileAtlas: {fileID: 11400000, guid: c0fe8ea7da318aa4fb6f9699a1805c46, type: 2}
+  worldHeightMultiplier: 30
+  terrainFrequency: 0.05
+  generateCaves: 1
+  caveNoiseTexture: {fileID: 0}
+  caveThreshold: 0.25
+  caveFrequency: 0.05
+  dirtLayerHeight: 5
+  longGrassChance: 6
+  treeChance: 10
+  treeSizeMin: 3
+  treeSizeMax: 6
+  ores: []
