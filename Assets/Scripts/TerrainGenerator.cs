@@ -6,8 +6,10 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class TerrainGenerator : MonoBehaviour {
+    public static TerrainGenerator Instance;
+
     public TileAtlas tileAtlas;
-    
+
     [BoxGroup("World Generation")]
     public int worldSize = 100;
     [BoxGroup("World Generation")]
@@ -22,12 +24,12 @@ public class TerrainGenerator : MonoBehaviour {
 
     [BoxGroup("Biomes")]
     public Biome[] biomes;
-    
+
     [BoxGroup("Terrain Generation")]
     public float terrainFrequency = 0.05f;
-    
+
     public bool generateCaves = true;
-    
+
     [BoxGroup("generateCaves/Cave Generation")]
     [ShowIfGroup("generateCaves")]
     [Range(0f, 1f)]
@@ -43,11 +45,31 @@ public class TerrainGenerator : MonoBehaviour {
 
     public List<GameObject> chunks = new List<GameObject>();
     public List<Tile> tiles = new List<Tile>();
-
-    private Texture2D caveNoiseTexture;
     private Texture2D biomeNoiseTexture;
 
+    // private Texture2D caveNoiseTexture;
+
     private int seed;
+    private bool validated;
+
+    private void Awake() {
+        if (Instance == null) {
+            Instance = this;
+        }
+    }
+
+    private void Start() {
+        Generate();
+
+        validated = true;
+    }
+
+    private void OnValidate() {
+        if (!validated)
+            return;
+        
+        Generate();
+    }
 
     private void Reset() {
         foreach (GameObject chunk in chunks) {
@@ -57,13 +79,8 @@ public class TerrainGenerator : MonoBehaviour {
         chunks.Clear();
         tiles.Clear();
 
-        caveNoiseTexture = null;
+        // caveNoiseTexture = null;
         // oreNoiseTextures.Clear();
-    }
-
-    // Start is called before the first frame update
-    void Start() {
-        Generate();
     }
 
     private void GenerateTerrain() {
@@ -72,22 +89,19 @@ public class TerrainGenerator : MonoBehaviour {
             float height = Mathf.PerlinNoise(xMod * terrainFrequency, seed * terrainFrequency) * worldHeightMultiplier + worldHeight;
 
             for (int y = 0; y < height; y++) {
-                Tile tile = GetTileForHeight(x, y, height);
-
-                if (tile == null) {
-                    Debug.LogWarning($"No tile for coordinates: {x}, {y}");
-                    continue;
-                }
-                
-                // CreateAndPlaceTile(tile, x, y);
-
                 Biome biome = GetBiomeForPosition(x, y);
                 if (biome == null) {
                     Debug.LogWarning($"::GenerateTerrain -> Could not find any biome for position: {x},{y}");
                 }
+                
+                Tile tile = GetTileForHeight(biome, x, y, height);
+                if (tile == null) {
+                    Debug.LogWarning($"No tile for coordinates: {x}, {y}");
+                    continue;
+                }
 
                 //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
-                if (y == 0 || !generateCaves || caveNoiseTexture.GetPixel(x, y) == Color.white) {
+                if (y == 0 || !biome.generateCaves || biome.caveNoiseTexture.GetPixel(x, y) == Color.white) {
                     CreateAndPlaceTile(tile, x, y);
                 }
 
@@ -138,8 +152,7 @@ public class TerrainGenerator : MonoBehaviour {
         return null;
     }
 
-    private Tile GetTileForHeight(int x, int y, float height) {
-        Biome biome = GetBiomeForPosition(x, y);
+    private Tile GetTileForHeight(Biome biome, int x, int y, float height) {
         if (biome == null) {
             Debug.LogWarning($"::GetTileForHeight -> Could not find any biome for position: {x},{y}");
             return null;
@@ -158,11 +171,10 @@ public class TerrainGenerator : MonoBehaviour {
         }
         else if (y < height - biome.dirtLayerHeight) {
             //  Stone level
-            
             foreach (Ore ore in biome.ores) {
                 // (height - y) determines the max distance from the top layer the ore can spawn
-                //  i.e. 0 means ore can spawn at every level, 40 means ore can only spawn 40 "y-layers" deep
-                if (ore.spreadTexture.GetPixel(x, y) == Color.white && 
+                //  i.e. 0 means ore can spawn at every level, 40 means ore can only spawn 40 "y-layers" deep or below
+                if (ore.spreadTexture.GetPixel(x, y) == Color.white &&
                     height - y > ore.maxSpawnHeight) {
                     tile = ore;
                 }
@@ -179,6 +191,23 @@ public class TerrainGenerator : MonoBehaviour {
 
         return tile;
     }
+
+    // private void GenerateCaves() {
+    //     for (int x = 0; x < worldSize; x++) {
+    //         for (int y = 0; y < worldSize; y++) {
+    //             Biome biome = GetBiomeForPosition(x, y);
+    //
+    //             if (biome == null) {
+    //                 Debug.LogWarning($"::GenerateCavesAndOres -> Could not get biome for position: {x},{y}");
+    //                 continue;
+    //             }
+    //             
+    //             float value = Mathf.PerlinNoise((x + seed) * biome.caveFrequency, (y + seed) * biome.caveFrequency);
+    //             
+    //             biome.caveNoiseTexture.SetPixel(x, y, value > biome.caveThreshold ? Color.white : Color.black);
+    //         }
+    //     }
+    // }
 
     private Biome GetBiomeForPosition(int x, int y) {
         foreach (Biome biome in biomes) {
@@ -270,7 +299,7 @@ public class TerrainGenerator : MonoBehaviour {
 
         noiseTexture.Apply();
     }
-    
+
     private void GenerateBiomeTexture() {
         int seedMod = Random.Range(-1000000, 1000000);
         for (int x = 0; x < biomeNoiseTexture.width; x++) {
@@ -293,7 +322,7 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     [Button(ButtonSizes.Large)]
-    private void Generate() {
+    public void Generate() {
         if (!Application.isPlaying)
             return;
 
@@ -308,13 +337,13 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     private void GenerateNoiseTextures() {
+        // caveNoiseTexture = new Texture2D(worldSize, worldHeight);
+        // GenerateNoiseTexture(caveNoiseTexture, caveFrequency, caveThreshold);
+
         //  Generate biomes
-        biomeNoiseTexture = new Texture2D(worldSize, worldSize);
+        biomeNoiseTexture = new Texture2D(worldSize, worldHeight);
         GenerateBiomeTexture();
-
-        caveNoiseTexture = new Texture2D(worldSize, worldHeight);
-        GenerateNoiseTexture(caveNoiseTexture, caveFrequency, caveThreshold);
-
+        
         foreach (Biome biome in biomes) {
             //  Generate caves
             biome.caveNoiseTexture = new Texture2D(worldSize, worldHeight);

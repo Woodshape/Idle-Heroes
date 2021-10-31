@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -37,4 +38,11 @@ public class Biome : ScriptableObject {
 
     [BoxGroup("Ore Settings")]
     public Ore[] ores;
+
+    private void OnValidate() {
+        if (!Application.isPlaying)
+            return;
+        
+        TerrainGenerator.Instance.Generate();
+    }
 }
