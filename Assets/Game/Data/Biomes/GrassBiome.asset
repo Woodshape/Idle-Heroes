@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Color: {r: 0.02745098, g: 1, b: 0, a: 1}
   tileAtlas: {fileID: 11400000, guid: 56fa302783beb6d4e8f41f9bea39c3eb, type: 2}
-  worldHeightMultiplier: 30
-  terrainFrequency: 0.05
   generateCaves: 1
   caveNoiseTexture: {fileID: 0}
-  caveThreshold: 0.25
+  caveThreshold: 0.2
   caveFrequency: 0.05
   dirtLayerHeight: 10
   longGrassChance: 6

@@ -22,5 +22,6 @@ MonoBehaviour:
   longGrassChance: 6
   treeChance: 10
   treeSizeMin: 3
-  treeSizeMax: 5
-  ores: []
+  treeSizeMax: 6
+  ores:
+  - {fileID: 11400000, guid: 1d7e423dda577c94cb78a7e56be95acf, type: 2}

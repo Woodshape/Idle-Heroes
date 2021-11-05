@@ -27,9 +27,12 @@ public class TerrainGenerator : MonoBehaviour {
 
     [BoxGroup("Terrain Generation")]
     public float terrainFrequency = 0.05f;
-
+    
     public bool generateCaves = true;
 
+    [BoxGroup("generateCaves/Cave Generation")]
+    [ShowIfGroup("generateCaves")]
+    public Texture2D caveNoiseTexture;
     [BoxGroup("generateCaves/Cave Generation")]
     [ShowIfGroup("generateCaves")]
     [Range(0f, 1f)]
@@ -91,40 +94,41 @@ public class TerrainGenerator : MonoBehaviour {
             for (int y = 0; y < height; y++) {
                 Biome biome = GetBiomeForPosition(x, y);
                 if (biome == null) {
-                    Debug.LogWarning($"::GenerateTerrain -> Could not find any biome for position: {x},{y}");
-                }
-                
-                Tile tile = GetTileForHeight(biome, x, y, height);
-                if (tile == null) {
-                    Debug.LogWarning($"No tile for coordinates: {x}, {y}");
                     continue;
                 }
 
-                //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
-                if (y == 0 || !biome.generateCaves || biome.caveNoiseTexture.GetPixel(x, y) == Color.white) {
-                    CreateAndPlaceTile(tile, x, y);
-                }
+                PlaceTileForBiome(biome, x, y, height);
+                PlaceFloraForBiome(biome, x, y, height);
+            }
+        }
+    }
+    
+    private void PlaceTileForBiome(Biome biome, int x, int y, float height) {
+        Tile tile = GetTileForHeight(biome, x, y, height);
+        //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
+        if (y == 0 || !generateCaves || caveNoiseTexture.GetPixel(x, y) == Color.white) {
+            CreateAndPlaceTile(tile, x, y);
+        }
+    }
+    
+    private void PlaceFloraForBiome(Biome biome, int x, int y, float height) { //  PLace trees and long grass
+        if (y > height - 1) {
+            Tile t = TileAtPosition(x, y);
 
-                //  PLace trees and long grass
-                if (y > height - 1) {
-                    Tile t = TileAtPosition(x, y);
-                    
-                    int treeChance = Random.Range(0, biome.treeChance);
-                    if (treeChance == 1) {
-                        //  Make sure that the tree is placed on solid ground (viz. grass)
-                        if (t != null && t == biome.tileAtlas.grass) {
-                            GenerateAndPlaceTree(biome, Random.Range(biome.treeSizeMin, biome.treeSizeMax + 1), x, y);
-                        }
-                    }
-                        
-                    int grassChance = Random.Range(0, biome.longGrassChance);
-                    if (grassChance == 1) {
-                        Tile top = TileAtPosition(x, y + 1);
-                        //  Make sure that the long grass is placed on solid ground (viz. grass) and not on top of any other object
-                        if (t != null && t == biome.tileAtlas.grass && top == null) {
-                            GenerateAndPlaceLongGrass(biome, x, y);
-                        }
-                    }
+            int treeChance = Random.Range(0, biome.treeChance);
+            if (treeChance == 1) {
+                //  Make sure that the tree is placed on solid ground (viz. grass)
+                if (t != null && t == biome.tileAtlas.grass) {
+                    GenerateAndPlaceTree(biome, Random.Range(biome.treeSizeMin, biome.treeSizeMax + 1), x, y);
+                }
+            }
+
+            int grassChance = Random.Range(0, biome.longGrassChance);
+            if (grassChance == 1) {
+                Tile top = TileAtPosition(x, y + 1);
+                //  Make sure that the long grass is placed on solid ground (viz. grass) and not on top of any other object
+                if (t != null && t == biome.tileAtlas.grass && top == null) {
+                    GenerateAndPlaceLongGrass(biome, x, y);
                 }
             }
         }
@@ -215,6 +219,8 @@ public class TerrainGenerator : MonoBehaviour {
                 return biome;
             }
         }
+        
+        Debug.LogWarning($"::GenerateTerrain -> Could not find any biome for position: {x},{y}");
         
         return null;
     }
@@ -337,20 +343,21 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     private void GenerateNoiseTextures() {
-        // caveNoiseTexture = new Texture2D(worldSize, worldHeight);
-        // GenerateNoiseTexture(caveNoiseTexture, caveFrequency, caveThreshold);
+        caveNoiseTexture = new Texture2D(worldSize, worldSize);
+        GenerateNoiseTexture(caveNoiseTexture, caveFrequency, caveThreshold);
 
         //  Generate biomes
-        biomeNoiseTexture = new Texture2D(worldSize, worldHeight);
+        biomeNoiseTexture = new Texture2D(worldSize, worldSize);
         GenerateBiomeTexture();
         
         foreach (Biome biome in biomes) {
             //  Generate caves
-            biome.caveNoiseTexture = new Texture2D(worldSize, worldHeight);
-            GenerateNoiseTexture(biome.caveNoiseTexture, biome.caveFrequency, biome.caveThreshold);
+            // biome.caveNoiseTexture = new Texture2D(worldSize, worldHeight);
+            // GenerateNoiseTexture(biome.caveNoiseTexture, biome.caveFrequency, biome.caveThreshold);
 
             //  Generate ores
             foreach (Ore ore in biome.ores) {
+                //  We don't need to generate ores "above ground level", thus we only use worldHeight here
                 ore.spreadTexture = new Texture2D(worldSize, worldHeight);
                 GenerateNoiseTexture(ore.spreadTexture, ore.rarity, ore.size);
             }
