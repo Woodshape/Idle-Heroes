@@ -152,7 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 717a146b196092c489189f3dd1c011c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileAtlas: {fileID: 11400000, guid: 8f5b3b0dff74ab045b908c399f09f7d3, type: 2}
   worldSize: 200
   worldHeight: 100
   worldHeightMultiplier: 25
@@ -163,7 +162,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ffc3bde6b20690244be7dcf7b3af1322, type: 2}
   terrainFrequency: 0.03
   generateCaves: 1
-  caveNoiseTexture: {fileID: 0}
   caveThreshold: 0.25
   caveFrequency: 0.05
   biomeFrequency: 0.01
@@ -354,6 +352,7 @@ GameObject:
   - component: {fileID: 1898630982}
   - component: {fileID: 1898630981}
   - component: {fileID: 1898630980}
+  - component: {fileID: 1898630983}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -396,7 +395,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 20
+  orthographic size: 5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -426,6 +425,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1898630983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1898630979}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 421c760eca086dd4ca7576a6ed260c5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 2049569212}
+  offset: {x: 0, y: 0, z: -10}
+  smoothRate: 0.025
+--- !u!4 &2049569212 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4037785824658467582, guid: 45a0d60399a16e240ba9531863bbef73, type: 3}
+  m_PrefabInstance: {fileID: 4037785822677293892}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4037785822677293892
 PrefabInstance:
   m_ObjectHideFlags: 0
