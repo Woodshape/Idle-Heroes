@@ -8,8 +8,6 @@ using Random = UnityEngine.Random;
 public class TerrainGenerator : MonoBehaviour {
     public static TerrainGenerator Instance;
 
-    public TileAtlas tileAtlas;
-
     [BoxGroup("World Generation")]
     public int worldSize = 100;
     [BoxGroup("World Generation")]
@@ -29,10 +27,7 @@ public class TerrainGenerator : MonoBehaviour {
     public float terrainFrequency = 0.05f;
     
     public bool generateCaves = true;
-
-    [BoxGroup("generateCaves/Cave Generation")]
-    [ShowIfGroup("generateCaves")]
-    public Texture2D caveNoiseTexture;
+    
     [BoxGroup("generateCaves/Cave Generation")]
     [ShowIfGroup("generateCaves")]
     [Range(0f, 1f)]
@@ -48,12 +43,12 @@ public class TerrainGenerator : MonoBehaviour {
 
     public List<GameObject> chunks = new List<GameObject>();
     public List<Tile> tiles = new List<Tile>();
-    private Texture2D biomeNoiseTexture;
+    
+    private Texture2D _caveNoiseTexture;
+    private Texture2D _biomeNoiseTexture;
 
-    // private Texture2D caveNoiseTexture;
-
-    private int seed;
-    private bool validated;
+    private int _seed;
+    private bool _validated;
 
     private void Awake() {
         if (Instance == null) {
@@ -64,11 +59,11 @@ public class TerrainGenerator : MonoBehaviour {
     private void Start() {
         Generate();
 
-        validated = true;
+        _validated = true;
     }
 
     private void OnValidate() {
-        if (!validated)
+        if (!_validated)
             return;
         
         Generate();
@@ -88,8 +83,8 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void GenerateTerrain() {
         for (int x = 0; x < worldSize; x++) {
-            int xMod = x + seed;
-            float height = Mathf.PerlinNoise(xMod * terrainFrequency, seed * terrainFrequency) * worldHeightMultiplier + worldHeight;
+            int xMod = x + _seed;
+            float height = Mathf.PerlinNoise(xMod * terrainFrequency, _seed * terrainFrequency) * worldHeightMultiplier + worldHeight;
 
             for (int y = 0; y < height; y++) {
                 Biome biome = GetBiomeForPosition(x, y);
@@ -106,7 +101,7 @@ public class TerrainGenerator : MonoBehaviour {
     private void PlaceTileForBiome(Biome biome, int x, int y, float height) {
         Tile tile = GetTileForHeight(biome, x, y, height);
         //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
-        if (y == 0 || !generateCaves || caveNoiseTexture.GetPixel(x, y) == Color.white) {
+        if (y == 0 || !generateCaves || _caveNoiseTexture.GetPixel(x, y) == Color.white) {
             CreateAndPlaceTile(tile, x, y);
         }
     }
@@ -215,7 +210,7 @@ public class TerrainGenerator : MonoBehaviour {
 
     private Biome GetBiomeForPosition(int x, int y) {
         foreach (Biome biome in biomes) {
-            if (biome.Color.Equals(biomeNoiseTexture.GetPixel(x, y))) {
+            if (biome.Color.Equals(_biomeNoiseTexture.GetPixel(x, y))) {
                 return biome;
             }
         }
@@ -294,8 +289,8 @@ public class TerrainGenerator : MonoBehaviour {
         int seedMod = Random.Range(-1000000, 1000000);
         for (int x = 0; x < noiseTexture.width; x++) {
             for (int y = 0; y < noiseTexture.height; y++) {
-                int xMod = x + seed + seedMod;
-                int yMod = y + seed + seedMod;
+                int xMod = x + _seed + seedMod;
+                int yMod = y + _seed + seedMod;
 
                 float value = Mathf.PerlinNoise(xMod * frequency, yMod * frequency);
 
@@ -308,10 +303,10 @@ public class TerrainGenerator : MonoBehaviour {
 
     private void GenerateBiomeTexture() {
         int seedMod = Random.Range(-1000000, 1000000);
-        for (int x = 0; x < biomeNoiseTexture.width; x++) {
-            for (int y = 0; y < biomeNoiseTexture.height; y++) {
-                int xMod = x + seed + seedMod;
-                int yMod = y + seed + seedMod;
+        for (int x = 0; x < _biomeNoiseTexture.width; x++) {
+            for (int y = 0; y < _biomeNoiseTexture.height; y++) {
+                int xMod = x + _seed + seedMod;
+                int yMod = y + _seed + seedMod;
 
                 // float value = Mathf.PerlinNoise(xMod * biomeFrequency, seed * biomeFrequency);
                 float value = Mathf.PerlinNoise(xMod * biomeFrequency, yMod * biomeFrequency);
@@ -320,11 +315,11 @@ public class TerrainGenerator : MonoBehaviour {
                 Color color = biomeGradient.Evaluate(value);
                 
                 //  Apply color to noise map
-                biomeNoiseTexture.SetPixel(x, y, color);
+                _biomeNoiseTexture.SetPixel(x, y, color);
             }
         }
 
-        biomeNoiseTexture.Apply();
+        _biomeNoiseTexture.Apply();
     }
 
     [Button(ButtonSizes.Large)]
@@ -332,7 +327,7 @@ public class TerrainGenerator : MonoBehaviour {
         if (!Application.isPlaying)
             return;
 
-        seed = Random.Range(-1000000, 1000000);
+        _seed = Random.Range(-1000000, 1000000);
 
         Reset();
 
@@ -343,11 +338,11 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     private void GenerateNoiseTextures() {
-        caveNoiseTexture = new Texture2D(worldSize, worldSize);
-        GenerateNoiseTexture(caveNoiseTexture, caveFrequency, caveThreshold);
+        _caveNoiseTexture = new Texture2D(worldSize, worldSize);
+        GenerateNoiseTexture(_caveNoiseTexture, caveFrequency, caveThreshold);
 
         //  Generate biomes
-        biomeNoiseTexture = new Texture2D(worldSize, worldSize);
+        _biomeNoiseTexture = new Texture2D(worldSize, worldSize);
         GenerateBiomeTexture();
         
         foreach (Biome biome in biomes) {
