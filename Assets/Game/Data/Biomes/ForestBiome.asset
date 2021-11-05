@@ -16,11 +16,11 @@ MonoBehaviour:
   tileAtlas: {fileID: 11400000, guid: 3cbe8ee7bc8450a499a5dfacd722e969, type: 2}
   generateCaves: 1
   caveNoiseTexture: {fileID: 0}
-  caveThreshold: 0.25
+  caveThreshold: 0.015
   caveFrequency: 0.05
   dirtLayerHeight: 5
   longGrassChance: 6
-  treeChance: 3
+  treeChance: 2
   treeSizeMin: 3
   treeSizeMax: 12
   ores: []
