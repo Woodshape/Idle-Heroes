@@ -16,3 +16,4 @@ MonoBehaviour:
   sprites:
   - {fileID: 21300000, guid: d010431fec3ffd4418c61b220a0c15fa, type: 3}
   - {fileID: 21300000, guid: f1f202fe6c5cf224fabba469b8958bce, type: 3}
+  isSolid: 1

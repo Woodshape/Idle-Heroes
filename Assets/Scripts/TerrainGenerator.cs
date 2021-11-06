@@ -42,7 +42,6 @@ public class TerrainGenerator : MonoBehaviour {
     public Gradient biomeGradient;
 
     public List<GameObject> chunks = new List<GameObject>();
-    public List<Tile> tiles = new List<Tile>();
     
     private Texture2D _caveNoiseTexture;
     private Texture2D _biomeNoiseTexture;
@@ -56,11 +55,11 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    private void Start() {
-        Generate();
-
-        _validated = true;
-    }
+    // private void Start() {
+    //     Generate();
+    //
+    //     _validated = true;
+    // }
 
     private void OnValidate() {
         if (!_validated)
@@ -75,7 +74,6 @@ public class TerrainGenerator : MonoBehaviour {
         }
 
         chunks.Clear();
-        tiles.Clear();
 
         // caveNoiseTexture = null;
         // oreNoiseTextures.Clear();
@@ -102,7 +100,7 @@ public class TerrainGenerator : MonoBehaviour {
         Tile tile = GetTileForHeight(biome, x, y, height);
         //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
         if (y == 0 || !generateCaves || _caveNoiseTexture.GetPixel(x, y) == Color.white) {
-            CreateAndPlaceTile(tile, x, y, true);
+            CreateAndPlaceTile(tile, x, y);
         }
     }
     
@@ -141,7 +139,12 @@ public class TerrainGenerator : MonoBehaviour {
     }
 
     private Tile TileAtPosition(int x, int y) {
-        foreach (Tile tile in tiles) {
+        if (World.Instance == null) {
+            Debug.LogError("No world instance found!");
+            return null;
+        }
+        
+        foreach (Tile tile in World.Instance.tiles) {
             if (tile.IsAtPosition(x, y)){
                 // Debug.Log($"Tile {tile} at position: {x}, {y}");
                 return tile;
@@ -191,23 +194,6 @@ public class TerrainGenerator : MonoBehaviour {
         return tile;
     }
 
-    // private void GenerateCaves() {
-    //     for (int x = 0; x < worldSize; x++) {
-    //         for (int y = 0; y < worldSize; y++) {
-    //             Biome biome = GetBiomeForPosition(x, y);
-    //
-    //             if (biome == null) {
-    //                 Debug.LogWarning($"::GenerateCavesAndOres -> Could not get biome for position: {x},{y}");
-    //                 continue;
-    //             }
-    //             
-    //             float value = Mathf.PerlinNoise((x + seed) * biome.caveFrequency, (y + seed) * biome.caveFrequency);
-    //             
-    //             biome.caveNoiseTexture.SetPixel(x, y, value > biome.caveThreshold ? Color.white : Color.black);
-    //         }
-    //     }
-    // }
-
     private Biome GetBiomeForPosition(int x, int y) {
         foreach (Biome biome in biomes) {
             if (biome.Color.Equals(_biomeNoiseTexture.GetPixel(x, y))) {
@@ -231,25 +217,25 @@ public class TerrainGenerator : MonoBehaviour {
 
         //  Place logs one tile above ground
         for (int i = 1; i <= treeHeight; i++) {
-            CreateAndPlaceTile(biome.tileAtlas.log, x, y + i, false);
+            CreateAndPlaceTile(biome.tileAtlas.log, x, y + i);
         }
 
         if (biome.tileAtlas.leaf == null)
             return;
 
         // Place leaves above log height
-        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 1, false);
-        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 2, false);
-        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 3, false);
+        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 1);
+        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 2);
+        CreateAndPlaceTile(biome.tileAtlas.leaf, x, y + treeHeight + 3);
         
         // Place leaves to the left and right only if we are not at the world's outer bounds
         if (x > 0) {
-            CreateAndPlaceTile(biome.tileAtlas.leaf, x - 1, y + treeHeight + 1, false);
-            CreateAndPlaceTile(biome.tileAtlas.leaf, x - 1, y + treeHeight + 2, false);
+            CreateAndPlaceTile(biome.tileAtlas.leaf, x - 1, y + treeHeight + 1);
+            CreateAndPlaceTile(biome.tileAtlas.leaf, x - 1, y + treeHeight + 2);
         }
         if (x < worldSize - 1) {
-            CreateAndPlaceTile(biome.tileAtlas.leaf, x + 1, y + treeHeight + 1, false);
-            CreateAndPlaceTile(biome.tileAtlas.leaf, x + 1, y + treeHeight + 2, false);
+            CreateAndPlaceTile(biome.tileAtlas.leaf, x + 1, y + treeHeight + 1);
+            CreateAndPlaceTile(biome.tileAtlas.leaf, x + 1, y + treeHeight + 2);
         }
     }
 
@@ -260,11 +246,11 @@ public class TerrainGenerator : MonoBehaviour {
         }
 
         if (biome.tileAtlas.longGrass != null) {
-            CreateAndPlaceTile(biome.tileAtlas.longGrass, x, y + 1, false);
+            CreateAndPlaceTile(biome.tileAtlas.longGrass, x, y + 1);
         }
     }
 
-    private void CreateAndPlaceTile(Tile tile, int x, int y, bool isSolid) {
+    private void CreateAndPlaceTile(Tile tile, int x, int y) {
         GameObject newTile = new GameObject {name = tile.tileName};
 
         float chunkCoord = (Mathf.Round(x / chunkSize) * chunkSize);
@@ -278,7 +264,7 @@ public class TerrainGenerator : MonoBehaviour {
         newTile.AddComponent<SpriteRenderer>();
         newTile.GetComponent<SpriteRenderer>().sprite = sprite;
 
-        if (isSolid) {
+        if (tile.isSolid) {
             newTile.AddComponent<BoxCollider2D>();
 
             Rigidbody2D rb = newTile.AddComponent<Rigidbody2D>();
@@ -291,8 +277,9 @@ public class TerrainGenerator : MonoBehaviour {
         tile.CreateAt(x, y);
 
         // Debug.Log($"Spawning {tile.tileName} at: {x}, {y}");
-
-        tiles.Add(tile);
+        if (World.Instance != null) {
+            World.Instance.tiles.Add(tile);
+        }
     }
 
     private void GenerateNoiseTexture(Texture2D noiseTexture, float frequency, float threshold) {

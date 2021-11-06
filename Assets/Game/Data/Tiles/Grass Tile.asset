@@ -15,3 +15,4 @@ MonoBehaviour:
   tileName: Grass
   sprites:
   - {fileID: 21300000, guid: 91e77f5c0a2ba7a4ba2c9fe8937c3a3f, type: 3}
+  isSolid: 1

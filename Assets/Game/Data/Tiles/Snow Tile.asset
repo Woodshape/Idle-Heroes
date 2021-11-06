@@ -15,3 +15,4 @@ MonoBehaviour:
   tileName: Snow
   sprites:
   - {fileID: 21300000, guid: ada50b6b7294e2a4fa50cad7d24dcf6b, type: 3}
+  isSolid: 1

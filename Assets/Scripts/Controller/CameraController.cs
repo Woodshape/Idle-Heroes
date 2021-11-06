@@ -28,6 +28,10 @@ namespace Controller {
             _camera = GetComponent<Camera>();
             _zoomTarget = _camera.orthographicSize;
         }
+        
+        public void FollowTarget(GameObject target) {
+            this.target = target.transform;
+        }
 
         private void Update() {
             if (target == null || _camera == null) {
