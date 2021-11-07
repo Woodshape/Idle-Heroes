@@ -54,18 +54,12 @@ public class World : MonoBehaviour {
         // Debug.Log("Trying to remove: " + tileToRemove);
 
         if (tileToRemove != null) {
-            // if (!_terrainGenerator.tiles.Contains(tileToRemove.Position.GameObject)) {
-            //     Debug.LogWarning("Could not find GameObject for Tile: " + tileToRemove);
-            //     return false;
-            // }
-            
+
             Debug.Log($"REMOVING Tile: {tileToRemove.data} [{tileToRemove.X},{tileToRemove.Y}]");
             
             tiles.Remove(tileToRemove);
             Destroy(tileToRemove.gameObject);
-            // _terrainGenerator.tiles.Remove(tileToRemove.Position.GameObject);
-            // Destroy(tileToRemove.Position.GameObject);
-            
+
             return true;
         }
         else {
