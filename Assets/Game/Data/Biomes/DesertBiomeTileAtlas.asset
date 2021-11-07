@@ -13,9 +13,11 @@ MonoBehaviour:
   m_Name: DesertBiomeTileAtlas
   m_EditorClassIdentifier: 
   stone: {fileID: 11400000, guid: ca021a486452f6247b92530ba1549cb1, type: 2}
+  stoneWall: {fileID: 11400000, guid: 722802b8980da874ca988326992d2865, type: 2}
   bedrock: {fileID: 11400000, guid: a62764bdd2b3c484a9230f5bd4603930, type: 2}
   dirt: {fileID: 11400000, guid: ca021a486452f6247b92530ba1549cb1, type: 2}
+  dirtWall: {fileID: 11400000, guid: 722802b8980da874ca988326992d2865, type: 2}
   grass: {fileID: 11400000, guid: ca021a486452f6247b92530ba1549cb1, type: 2}
-  log: {fileID: 0}
+  log: {fileID: 11400000, guid: 225b97eec87c6964093982f1fe2d4f1e, type: 2}
   leaf: {fileID: 0}
   longGrass: {fileID: 11400000, guid: c452a3e0f3b9b5a41a1e3eca41b02add, type: 2}

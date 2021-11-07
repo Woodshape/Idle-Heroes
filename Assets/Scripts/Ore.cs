@@ -11,6 +11,8 @@ public class Ore : TileData
     [Range(0f, 1f)]
     public float size;
     public int maxSpawnHeight;
+    
+    public Sprite oreSprite;
 
     public Texture2D spreadTexture;
 }

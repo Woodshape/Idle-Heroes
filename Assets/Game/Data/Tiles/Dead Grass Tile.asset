@@ -13,6 +13,11 @@ MonoBehaviour:
   m_Name: Dead Grass Tile
   m_EditorClassIdentifier: 
   tileName: Dead Grass Tile
+  tileType: 0
   sprites:
   - {fileID: 21300000, guid: c5131fc92d0a48b4fbe9cfcd0da77332, type: 3}
   - {fileID: 21300000, guid: 6be8854dd28486f4ba9066fef529b66e, type: 3}
+  isBreakable: 1
+  isSolid: 0
+  inBackground: 0
+  dropTile: 0

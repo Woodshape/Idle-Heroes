@@ -74,9 +74,8 @@ public class TerrainGenerator : MonoBehaviour {
         }
 
         chunks.Clear();
-
-        // caveNoiseTexture = null;
-        // oreNoiseTextures.Clear();
+        
+        World.Instance.tiles.Clear();
     }
 
     private void GenerateTerrain() {
@@ -101,14 +100,20 @@ public class TerrainGenerator : MonoBehaviour {
         //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
         if (y == 0 || !generateCaves || _caveNoiseTexture.GetPixel(x, y) == Color.white) {
             CreateAndPlaceTile(tileData, x, y);
+        }else if (generateCaves) {
+            if (tileData == biome.tileAtlas.stone || tileData is Ore) {
+                CreateAndPlaceTile(biome.tileAtlas.stoneWall, x, y);
+            }else if (tileData == biome.tileAtlas.dirt) {
+                CreateAndPlaceTile(biome.tileAtlas.dirtWall, x, y);
+            }
         }
     }
     
     private void PlaceFloraForBiome(Biome biome, int x, int y, float height) { //  PLace trees and long grass
         if (y > height - 1) {
-            Tile t = World.Instance.TileAtPosition(x, y);
+            Tile tile = World.Instance.TileAtPosition(x, y);
 
-            if (t == null) {
+            if (tile == null) {
                 Debug.LogWarning($"No tile at position: {x},{y}");
                 return;
             }
@@ -116,7 +121,7 @@ public class TerrainGenerator : MonoBehaviour {
             int treeChance = Random.Range(0, biome.treeChance);
             if (treeChance == 1) {
                 //  Make sure that the tree is placed on solid ground (viz. grass)
-                if (t != null && t == biome.tileAtlas.grass) {
+                if (tile != null && tile.data == biome.tileAtlas.grass) {
                     GenerateAndPlaceTree(biome, Random.Range(biome.treeSizeMin, biome.treeSizeMax + 1), x, y);
                 }
             }
@@ -126,7 +131,7 @@ public class TerrainGenerator : MonoBehaviour {
                 Tile top = World.Instance.TileAtPosition(x, y + 1);
 
                 //  Make sure that the long grass is placed on solid ground (viz. grass) and not on top of any other object
-                if (t != null && t == biome.tileAtlas.grass && top == null) {
+                if (tile != null && tile.data == biome.tileAtlas.grass && top == null) {
                     GenerateAndPlaceLongGrass(biome, x, y);
                 }
             }
@@ -184,7 +189,7 @@ public class TerrainGenerator : MonoBehaviour {
         return tileData;
     }
 
-    private Biome GetBiomeForPosition(int x, int y) {
+    public Biome GetBiomeForPosition(int x, int y) {
         foreach (Biome biome in biomes) {
             if (biome.Color.Equals(_biomeNoiseTexture.GetPixel(x, y))) {
                 return biome;
@@ -240,10 +245,14 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    private void CreateAndPlaceTile(TileData tileData, int x, int y) {
+    public void CreateAndPlaceTile(TileData tileData, int x, int y) {
+        if (World.Instance.TileAtPosition(x, y) != null) {
+            return;
+        }
+        
         GameObject newTile = new GameObject {name = tileData.tileName};
 
-        float chunkCoord = (Mathf.Round(x / chunkSize) * chunkSize);
+        float chunkCoord = (Mathf.Round( x / chunkSize) * chunkSize);
         chunkCoord /= chunkSize;
 
         newTile.transform.parent = chunks.ElementAt((int) chunkCoord).transform;
@@ -251,8 +260,8 @@ public class TerrainGenerator : MonoBehaviour {
 
         Sprite sprite = tileData.sprites[Random.Range(0, tileData.sprites.Length)];
         
-        newTile.AddComponent<SpriteRenderer>();
-        newTile.GetComponent<SpriteRenderer>().sprite = sprite;
+        SpriteRenderer sr = newTile.AddComponent<SpriteRenderer>();
+        sr.sprite = sprite;
 
         if (tileData.isSolid) {
             newTile.AddComponent<BoxCollider2D>();
@@ -262,6 +271,11 @@ public class TerrainGenerator : MonoBehaviour {
             // rb.simulated = true;
 
             newTile.tag = "Ground";
+        }
+
+        if (tileData.inBackground) {
+            sr.sortingOrder = -10;
+            sr.color = new Color(0.5f, 0.5f, 0.5f);
         }
 
         Tile tile = newTile.AddComponent<Tile>();

@@ -1,5 +1,10 @@
 using System;
+using System.Diagnostics;
+using System.Threading;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 namespace Controller {
     public class PlayerController : MonoBehaviour {
@@ -8,17 +13,21 @@ namespace Controller {
 
         public float attackSpeed = 1f;
 
+        public TileData selectedTile;
+
         private Rigidbody2D _rigidbody;
         private Animator _animator;
-        private Camera _camera;
-
-        private Vector2 _mousePosition;
 
         private float _horizontal;
+        private float _interactionRange = 10f;
         
         private bool _onGround;
         private bool _facingRight;
         private bool _hit;
+        private bool _place;
+
+        private float _attackCountdownTime;
+        private float _placeCountdownTime;
         
         private static readonly int Horizontal = Animator.StringToHash("Horizontal");
         private static readonly int Hit = Animator.StringToHash("Hit");
@@ -27,34 +36,72 @@ namespace Controller {
         private void Awake() {
             _rigidbody = GetComponent<Rigidbody2D>();
             _animator = GetComponent<Animator>();
-            
-            _camera = Camera.main;
-            
+
             _animator.SetFloat(AttackSpeedMultiplier, attackSpeed);
+            
         }
 
         private void FixedUpdate() {
             HandleMovement();
-
-            _hit = Input.GetMouseButton(0);
         }
         
         private void Update() {
+            HandleTimers();
+            
+            HandleInput();
             HandleAnimation();
 
-            UpdateMousePosition();
 
-            int x = (int) _mousePosition.x;
-            int y = (int) _mousePosition.y;
-            if (_hit) {
-                // Debug.Log($"Trying to remove tile at: {x}, {y}");
-                World.Instance.RemoveTile(x, y);
+            Vector2 mousePosition = World.Instance.mousePosition;
+
+            int xPos = (int) mousePosition.x;
+            int yPos = (int) mousePosition.y;
+            if (_hit && World.Instance.GetDistanceToMouse(transform.position) <= _interactionRange) {
+                if (_place) {
+                    PlaceTile(xPos, yPos);
+                }
+                else {
+                    DestroyTile(xPos, yPos);
+                }
             }
         }
         
-        private void UpdateMousePosition() {
-            _mousePosition.x = Mathf.RoundToInt(_camera.ScreenToWorldPoint(Input.mousePosition).x - 0.5f);
-            _mousePosition.y = Mathf.RoundToInt(_camera.ScreenToWorldPoint(Input.mousePosition).y - 0.5f);
+        private void HandleTimers() {
+            _attackCountdownTime -= Time.deltaTime;
+            _placeCountdownTime -= Time.deltaTime;
+        }
+
+        private void DestroyTile(int xPos, int yPos) {
+            if (_attackCountdownTime <= 0f) {
+                Tile tile = World.Instance.TileAtPosition(xPos, yPos);
+                if (tile != null && !tile.data.inBackground) {
+                    World.Instance.RemoveTile(tile);
+                }
+
+                // Debug.Log($"Removing tile at: {xPos},{yPos}");
+
+                _attackCountdownTime = 1 / attackSpeed;
+            }
+        }
+
+        private void PlaceTile(int xPos, int yPos) {
+            if (_placeCountdownTime <= 0f) {
+                World.Instance.PlaceTile(selectedTile, xPos, yPos, selectedTile.isSolid); //    Only replace with solid tiles
+
+                // Debug.Log("Placing tile: " + selectedTile);
+
+                _placeCountdownTime = 1 / attackSpeed;
+            }
+        }
+
+        private void HandleInput() {
+            _hit = Input.GetMouseButton(0);
+
+            if (Input.GetMouseButtonDown(1)) {
+                _place = !_place;
+
+                World.Instance.SetPlace(_place);
+            }
         }
 
         private void HandleMovement() {

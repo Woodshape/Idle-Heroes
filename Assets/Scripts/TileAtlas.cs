@@ -7,9 +7,13 @@ public class TileAtlas : ScriptableObject
     [BoxGroup("Tiles")]
     public TileData stone;
     [BoxGroup("Tiles")]
+    public TileData stoneWall;
+    [BoxGroup("Tiles")]
     public TileData bedrock;
     [BoxGroup("Tiles")]
     public TileData dirt;
+    [BoxGroup("Tiles")]
+    public TileData dirtWall;
     [BoxGroup("Tiles")]
     public TileData grass;
     [BoxGroup("Tiles")]

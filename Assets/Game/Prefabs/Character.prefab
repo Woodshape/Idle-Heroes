@@ -626,7 +626,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 10
   jumpForce: 12
-  attackSpeed: 1
+  attackSpeed: 2
+  selectedTile: {fileID: 11400000, guid: a92194022e06d0140b8e59cf805df661, type: 2}
 --- !u!95 &2496968126933593586
 Animator:
   serializedVersion: 3
