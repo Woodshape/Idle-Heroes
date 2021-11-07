@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ore", menuName = "Tiles/Ore")]
-public class Ore : Tile
+public class Ore : TileData
 {
     [Range(0f, 1f)]
     public float rarity;

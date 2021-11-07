@@ -10,6 +10,9 @@ namespace Controller {
 
         private Rigidbody2D _rigidbody;
         private Animator _animator;
+        private Camera _camera;
+
+        private Vector2 _mousePosition;
 
         private float _horizontal;
         
@@ -25,25 +28,49 @@ namespace Controller {
             _rigidbody = GetComponent<Rigidbody2D>();
             _animator = GetComponent<Animator>();
             
+            _camera = Camera.main;
+            
             _animator.SetFloat(AttackSpeedMultiplier, attackSpeed);
         }
 
         private void FixedUpdate() {
+            HandleMovement();
+
+            _hit = Input.GetMouseButton(0);
+        }
+        
+        private void Update() {
+            HandleAnimation();
+
+            UpdateMousePosition();
+
+            int x = (int) _mousePosition.x;
+            int y = (int) _mousePosition.y;
+            if (_hit) {
+                // Debug.Log($"Trying to remove tile at: {x}, {y}");
+                World.Instance.RemoveTile(x, y);
+            }
+        }
+        
+        private void UpdateMousePosition() {
+            _mousePosition.x = Mathf.RoundToInt(_camera.ScreenToWorldPoint(Input.mousePosition).x - 0.5f);
+            _mousePosition.y = Mathf.RoundToInt(_camera.ScreenToWorldPoint(Input.mousePosition).y - 0.5f);
+        }
+
+        private void HandleMovement() {
             if (_rigidbody == null) {
                 return;
             }
-
+            
             _horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = DetermineVerticalForce();
 
             FlipPlayer(_horizontal);
 
             _rigidbody.velocity = new Vector2(_horizontal * moveSpeed, vertical);
-
-            _hit = Input.GetMouseButton(0);
         }
 
-        private void Update() {
+        private void HandleAnimation() {
             if (_animator == null) {
                 return;
             }

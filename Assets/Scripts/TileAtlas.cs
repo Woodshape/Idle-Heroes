@@ -5,17 +5,17 @@ using UnityEngine;
 public class TileAtlas : ScriptableObject
 {
     [BoxGroup("Tiles")]
-    public Tile stone;
+    public TileData stone;
     [BoxGroup("Tiles")]
-    public Tile bedrock;
+    public TileData bedrock;
     [BoxGroup("Tiles")]
-    public Tile dirt;
+    public TileData dirt;
     [BoxGroup("Tiles")]
-    public Tile grass;
+    public TileData grass;
     [BoxGroup("Tiles")]
-    public Tile log;
+    public TileData log;
     [BoxGroup("Tiles")]
-    public Tile leaf;
+    public TileData leaf;
     [BoxGroup("Tiles")]
-    public Tile longGrass;
+    public TileData longGrass;
 }

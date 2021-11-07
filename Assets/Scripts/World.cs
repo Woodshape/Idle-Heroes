@@ -18,7 +18,7 @@ public class World : MonoBehaviour {
     
     private TerrainGenerator _terrainGenerator;
 
-    private Tile.TilePosition _playerSpawn;
+    private Vector2 _playerSpawn;
 
     private void Awake() {
         if (Instance == null) {
@@ -36,6 +36,44 @@ public class World : MonoBehaviour {
             cameraController.FollowTarget(player);
         }
     }
+    
+    public Tile TileAtPosition(int x, int y) {
+        foreach (Tile tile in tiles) {
+            if (tile.IsAtPosition(x, y)){
+                // Debug.Log($"Tile {tile} at position: {x}, {y}");
+                return tile;
+            }
+        }
+
+        return null;
+    }
+    
+    public bool RemoveTile(int x, int y) {
+        Tile tileToRemove = TileAtPosition(x, y);
+
+        // Debug.Log("Trying to remove: " + tileToRemove);
+
+        if (tileToRemove != null) {
+            // if (!_terrainGenerator.tiles.Contains(tileToRemove.Position.GameObject)) {
+            //     Debug.LogWarning("Could not find GameObject for Tile: " + tileToRemove);
+            //     return false;
+            // }
+            
+            Debug.Log($"REMOVING Tile: {tileToRemove.data} [{tileToRemove.X},{tileToRemove.Y}]");
+            
+            tiles.Remove(tileToRemove);
+            Destroy(tileToRemove.gameObject);
+            // _terrainGenerator.tiles.Remove(tileToRemove.Position.GameObject);
+            // Destroy(tileToRemove.Position.GameObject);
+            
+            return true;
+        }
+        else {
+            
+        }
+
+        return false;
+    }
 
     private void DeterminePlayerSpawn() {
         if (playerPrefab == null) {
@@ -43,8 +81,8 @@ public class World : MonoBehaviour {
             return;
         }
 
-        foreach (Tile tile in tiles.Where(tile => tile.tileName.Equals("Grass"))) {
-            _playerSpawn = tile.GetPosition();
+        foreach (Tile tile in tiles.Where(tile => tile.data.tileName.Equals("Grass"))) {
+            _playerSpawn = new Vector2(tile.X, tile.Y);
             break;
         }
 

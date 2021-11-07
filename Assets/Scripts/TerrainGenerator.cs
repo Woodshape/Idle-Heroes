@@ -42,7 +42,7 @@ public class TerrainGenerator : MonoBehaviour {
     public Gradient biomeGradient;
 
     public List<GameObject> chunks = new List<GameObject>();
-    
+
     private Texture2D _caveNoiseTexture;
     private Texture2D _biomeNoiseTexture;
 
@@ -97,16 +97,21 @@ public class TerrainGenerator : MonoBehaviour {
     }
     
     private void PlaceTileForBiome(Biome biome, int x, int y, float height) {
-        Tile tile = GetTileForHeight(biome, x, y, height);
+        TileData tileData = GetTileForHeight(biome, x, y, height);
         //  Place tiles only if noiseTexture did not "generate" a cave or we are at bedrock level
         if (y == 0 || !generateCaves || _caveNoiseTexture.GetPixel(x, y) == Color.white) {
-            CreateAndPlaceTile(tile, x, y);
+            CreateAndPlaceTile(tileData, x, y);
         }
     }
     
     private void PlaceFloraForBiome(Biome biome, int x, int y, float height) { //  PLace trees and long grass
         if (y > height - 1) {
-            Tile t = TileAtPosition(x, y);
+            Tile t = World.Instance.TileAtPosition(x, y);
+
+            if (t == null) {
+                Debug.LogWarning($"No tile at position: {x},{y}");
+                return;
+            }
 
             int treeChance = Random.Range(0, biome.treeChance);
             if (treeChance == 1) {
@@ -118,7 +123,8 @@ public class TerrainGenerator : MonoBehaviour {
 
             int grassChance = Random.Range(0, biome.longGrassChance);
             if (grassChance == 1) {
-                Tile top = TileAtPosition(x, y + 1);
+                Tile top = World.Instance.TileAtPosition(x, y + 1);
+
                 //  Make sure that the long grass is placed on solid ground (viz. grass) and not on top of any other object
                 if (t != null && t == biome.tileAtlas.grass && top == null) {
                     GenerateAndPlaceLongGrass(biome, x, y);
@@ -138,23 +144,7 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    private Tile TileAtPosition(int x, int y) {
-        if (World.Instance == null) {
-            Debug.LogError("No world instance found!");
-            return null;
-        }
-        
-        foreach (Tile tile in World.Instance.tiles) {
-            if (tile.IsAtPosition(x, y)){
-                // Debug.Log($"Tile {tile} at position: {x}, {y}");
-                return tile;
-            }
-        }
-
-        return null;
-    }
-
-    private Tile GetTileForHeight(Biome biome, int x, int y, float height) {
+    private TileData GetTileForHeight(Biome biome, int x, int y, float height) {
         if (biome == null) {
             Debug.LogWarning($"::GetTileForHeight -> Could not find any biome for position: {x},{y}");
             return null;
@@ -165,11 +155,11 @@ public class TerrainGenerator : MonoBehaviour {
         }
         
         //  Default stone
-        Tile tile = biome.tileAtlas.stone;
+        TileData tileData = biome.tileAtlas.stone;
 
         if (y == 0) {
             //  Bedrock level
-            tile = biome.tileAtlas.bedrock;
+            tileData = biome.tileAtlas.bedrock;
         }
         else if (y < height - biome.dirtLayerHeight) {
             //  Stone level
@@ -178,20 +168,20 @@ public class TerrainGenerator : MonoBehaviour {
                 //  i.e. 0 means ore can spawn at every level, 40 means ore can only spawn 40 "y-layers" deep or below
                 if (ore.spreadTexture.GetPixel(x, y) == Color.white &&
                     height - y > ore.maxSpawnHeight) {
-                    tile = ore;
+                    tileData = ore;
                 }
             }
         }
         else if (y < height - 1) {
             //  Place dirt above stone layer and one tile below surface
-            tile = biome.tileAtlas.dirt;
+            tileData = biome.tileAtlas.dirt;
         }
         else {
             //  Top layer
-            tile = biome.tileAtlas.grass;
+            tileData = biome.tileAtlas.grass;
         }
 
-        return tile;
+        return tileData;
     }
 
     private Biome GetBiomeForPosition(int x, int y) {
@@ -250,8 +240,8 @@ public class TerrainGenerator : MonoBehaviour {
         }
     }
 
-    private void CreateAndPlaceTile(Tile tile, int x, int y) {
-        GameObject newTile = new GameObject {name = tile.tileName};
+    private void CreateAndPlaceTile(TileData tileData, int x, int y) {
+        GameObject newTile = new GameObject {name = tileData.tileName};
 
         float chunkCoord = (Mathf.Round(x / chunkSize) * chunkSize);
         chunkCoord /= chunkSize;
@@ -259,12 +249,12 @@ public class TerrainGenerator : MonoBehaviour {
         newTile.transform.parent = chunks.ElementAt((int) chunkCoord).transform;
         newTile.transform.position = new Vector2(x + 0.5f, y + 0.5f);
 
-        Sprite sprite = tile.sprites[Random.Range(0, tile.sprites.Length)];
+        Sprite sprite = tileData.sprites[Random.Range(0, tileData.sprites.Length)];
         
         newTile.AddComponent<SpriteRenderer>();
         newTile.GetComponent<SpriteRenderer>().sprite = sprite;
 
-        if (tile.isSolid) {
+        if (tileData.isSolid) {
             newTile.AddComponent<BoxCollider2D>();
 
             Rigidbody2D rb = newTile.AddComponent<Rigidbody2D>();
@@ -273,10 +263,12 @@ public class TerrainGenerator : MonoBehaviour {
 
             newTile.tag = "Ground";
         }
-        
-        tile.CreateAt(x, y);
+
+        Tile tile = newTile.AddComponent<Tile>();
+        tile.Create(tileData, x, y);
 
         // Debug.Log($"Spawning {tile.tileName} at: {x}, {y}");
+        
         if (World.Instance != null) {
             World.Instance.tiles.Add(tile);
         }
@@ -321,7 +313,7 @@ public class TerrainGenerator : MonoBehaviour {
 
     [Button(ButtonSizes.Large)]
     public void Generate() {
-        if (!Application.isPlaying)
+        if (!Application.isPlaying || World.Instance == null)
             return;
 
         _seed = Random.Range(-1000000, 1000000);
